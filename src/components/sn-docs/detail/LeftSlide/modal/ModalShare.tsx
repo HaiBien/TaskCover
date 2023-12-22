@@ -8,6 +8,7 @@ import { DocAccessibility, HttpStatusCode } from "constant/enums";
 import { DEFAULT_PAGING, NS_COMMON } from "constant/index";
 import { Option } from "constant/types";
 import { useFormik } from "formik";
+import { DOCS_API_URL } from "constant/index";
 import useQueryParams from "hooks/useQueryParams";
 import { useTranslations } from "next-intl";
 import React, { SetStateAction, useEffect } from "react";
@@ -59,13 +60,14 @@ const ModalShare = ({ openShare, setOpenShare }: ModalShareProps) => {
           };
 
     const res = await client.put(Endpoint.ADD_PERM_DOCS + id, payload, {
-      baseURL: "http://103.196.145.232:6813/api/v1",
+      baseURL: DOCS_API_URL,
     });
     if (
       res.status === HttpStatusCode.OK ||
       res.status === HttpStatusCode.CREATED
     ) {
       onAddSnackbar("Thành Công", "success");
+      setOpenShare(false);
     }
     try {
     } catch (error) {}
