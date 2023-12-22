@@ -4,14 +4,14 @@ import { Box } from "@mui/material";
 import { Search } from "components/Filters";
 import { NS_DOCS } from "constant/index";
 import { useTranslations } from "next-intl";
-import React, { memo, useState } from "react";
+import React, { memo, useState, useEffect } from "react";
 import DocumentList from "./ItemDocs";
 import { Text } from "components/shared";
 import { useAppSelector } from "store/hooks";
 import ArrowRight from "icons/ArrowRight";
 import { uuid } from "utils/index";
 import useTheme from "hooks/useTheme";
-import { useGetDocDetailQuery } from "store/docs/api";
+import { useGetDocDetailQuery, useCreateDocMutation } from "store/docs/api";
 import { useParams } from "next/navigation";
 
 export interface LeftSlideDocProps {
@@ -22,46 +22,53 @@ export interface LeftSlideDocProps {
 const LeftSlideDoc = ({ open, setOpen }: LeftSlideDocProps) => {
   const dataFake = useAppSelector((state) => state.doc.docDetails.data);
   const { id } = useParams();
-
   const { data: document, isLoading } = useGetDocDetailQuery(id as string);
+  const [createDoc, { data: docsData, error }] = useCreateDocMutation();
 
-  const [data, setData] = useState(dataFake);
-
+  const [data, setData] = useState({});
   const docsT = useTranslations(NS_DOCS);
   const [search, setSearch] = useState("");
   const onChangeQueries = (name: string, value: any) => {
-    console.log("search value :>>", value);
     setSearch(value);
   };
+
+  useEffect( () => {
+    setData(document)
+  }, [document]) 
+
 
   const addChildToData = (parent, child) => {
     const newData = { ...data };
 
-    const addChildToParent = (parentNode) => {
-      if (parentNode.id === parent) {
-        parentNode.children.push(child);
+    const addChildToParent = async (parentNode) => {
+
+      const modifiedParentNode = {
+        ...parentNode,
+        child: parentNode.child || []
+      };
+      
+      if (modifiedParentNode.id === parent) {
+        modifiedParentNode.child = Array.isArray(modifiedParentNode.child) ? [...modifiedParentNode.child, child] : [child];
+        const result = await createDoc(child);
       } else {
-        parentNode.children.forEach((child) => {
+        modifiedParentNode.child.forEach((child) => {
           addChildToParent(child);
         });
-      }
+      } 
     };
-
     addChildToParent(newData);
     setData(newData);
   };
 
   // Hàm xử lý khi nhấn nút "Thêm mục con"
-  const handleAddChild = (parent) => {
+  const handleAddChild = (parent, project_id) => {
     const id = uuid();
     const newChild = {
       id: id,
-      title: "",
-      content: {
-        title: "",
-        content: "",
-      },
-      children: [],
+      project_id: project_id, 
+      root_directory : parent,
+      name: "No name",
+      description: "",
     };
 
     addChildToData(parent, newChild);
@@ -144,7 +151,7 @@ const LeftSlideDoc = ({ open, setOpen }: LeftSlideDocProps) => {
             >
               Page
             </Text>
-            <DocumentList onClick={handleAddChild} data={document} />
+            <DocumentList onClick={handleAddChild} data={data} />
           </Box>
         </Box>
       </Box>

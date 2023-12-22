@@ -13,10 +13,7 @@ import { IDocument } from "constant/types";
 export interface ItemDocsProps {
   onClick?: any;
   title: string;
-  content?: {
-    title: string;
-    content: string;
-  };
+  project_id?: string;
   id?: string;
   children: ItemDocsProps[];
 }
@@ -26,7 +23,8 @@ type TDocumentListProps = {
   onClick: any;
 };
 
-const Document = ({ title, id, onClick }: ItemDocsProps) => {
+
+const Document = ({ title, id, project_id, onClick }: ItemDocsProps) => {
   return (
     <>
       <Box
@@ -66,7 +64,7 @@ const Document = ({ title, id, onClick }: ItemDocsProps) => {
         >
           <MorePoper></MorePoper>
           <Box
-            onClick={() => onClick(id)}
+            onClick={() => onClick(id, project_id)}
             sx={{
               cursor: "pointer",
             }}
@@ -82,7 +80,7 @@ const Document = ({ title, id, onClick }: ItemDocsProps) => {
 const DocumentList: React.FC<TDocumentListProps> = ({ data, onClick }) => {
   return (
     <>
-      <Document onClick={onClick} children={data?.child} title={data?.name} />
+      <Document onClick={onClick} children={data?.child} id={data?.id} project_id={data?.project_id} title={data?.name} />
       {data?.child && (
         <Box
           sx={{
